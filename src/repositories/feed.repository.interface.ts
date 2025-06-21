@@ -1,3 +1,12 @@
+import { IFeed } from "../models/feed.interface"
+
+export const IFeedRepositoryToken = "IFeedRepository";
+
 export interface IFeedRepository {
-    findAll(): any
+    findById(id: string): Promise<IFeed | null>;
+    findAll(): any;
+    create(data: IFeed): Promise<IFeed>;
+    update(id: string, data: Partial<IFeed>): Promise<IFeed | null>;
+    delete(id: string): Promise<IFeed | null>;
 }
+
