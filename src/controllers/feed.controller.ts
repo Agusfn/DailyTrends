@@ -2,12 +2,18 @@ import { Inject, Service } from "typedi";
 import { IFeedRepository, IFeedRepositoryToken } from "../repositories/feed.repository.interface";
 import { Request, Response } from "express";
 import { Controller } from "./controller";
+import { ElMundoHtmlParserService } from "../services/feed-reader/el-mundo-html-parser.service";
+import axios from "axios";
 
 
 @Service()
 export class FeedController extends Controller {
     
     @Inject(IFeedRepositoryToken) private feedRepository!: IFeedRepository;
+
+    constructor(private elmundoParser: ElMundoHtmlParserService) {
+        super();
+    }
 
     protected registerRoutes() {
         this.router.get('/:id', this.get.bind(this));
@@ -19,6 +25,12 @@ export class FeedController extends Controller {
     }
 
     async get(req: Request, res: Response) {
+
+        const response = await axios.get("https://www.elmundo.es/");
+        const html = response.data;
+
+        this.elmundoParser.parseHtml(html);
+
         res.json(await this.feedRepository.findById(req.params.id!));
     }
 
