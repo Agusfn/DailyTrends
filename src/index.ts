@@ -3,7 +3,9 @@ import 'dotenv/config'
 import Container from 'typedi';
 import { MongooseService } from './services/mongoose.service';
 import { FeedRepository } from './repositories/feed.repository';
-import { IFeedRepository, IFeedRepositoryToken } from './repositories/feed.repository.interface';
+import { IFeedRepositoryToken } from './repositories/feed.repository.interface';
+import { IHttpServer, IHttpServerToken } from './services/http-server.service.interface';
+import { ExpressHttpServerService } from './services/express-http-server.service';
 
 
 
@@ -13,17 +15,13 @@ async function main() {
     const mongooseService = Container.get(MongooseService);
     await mongooseService.connect(process.env.MONGO_CONNECTION_STRING!);
 
-    Container.set(IFeedRepositoryToken, Container.get(FeedRepository))
+    // Bind services
+    Container.set(IFeedRepositoryToken, Container.get(FeedRepository));
+    Container.set(IHttpServerToken, Container.get(ExpressHttpServerService));
 
-    const repo = Container.get<IFeedRepository>(IFeedRepositoryToken);
-    const feed = await repo.create({
-        source: "elpais.com",
-        article_url: "https://elpais.com/espana/2025-06-21/el-trio-koldoabaloscerdan-se-rompe-entre-reproches-de-grave-corrupcion.html",
-        title: "El trío Koldo/Ábalos/Cerdán se rompe entre reproches de grave corrupción"
-    });
-
-    console.log("Feed created!");
-    console.log("feed", feed)
+    // Bootstrap
+    const server = Container.get<IHttpServer>(IHttpServerToken);
+    server.start(Number(process.env.SERVER_PORT!));
 
 }
 
