@@ -2,7 +2,7 @@ export interface IFeed {
     _id?: string,
     source: string,
     article_url: string,
-    title: string,
+    title?: string,
     subtitle?: string,
     category?: string,
     location?: string,

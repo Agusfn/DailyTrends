@@ -2,6 +2,8 @@ import parse from "node-html-parser/dist/parse";
 import { Service } from "typedi";
 import { HTMLElement } from "node-html-parser";
 import { IFeed } from "../../models/feed.interface";
+import { FeedSources } from "../../constants";
+import { INewsHtmlParser } from "./news-html-parser.interface";
 
 // ue-1-cg__unit:
 // tag/categoria: ue-c-cover-content__kicker o ue-c-cover-content__aboveheadline
@@ -19,29 +21,50 @@ import { IFeed } from "../../models/feed.interface";
 
 
 @Service()
-export class ElMundoHtmlParserService {
+export class ElMundoHtmlParserService implements INewsHtmlParser {
 
 
-    parseHtml(html: string) {
+    public parseFrontPage(pageHtml: string, pageDate: Date): IFeed[] {
 
-        const rootHtml = parse(html);
+        const rootHtml = parse(pageHtml);
 
         const matchingElements = rootHtml.querySelectorAll('.ue-l-cg__unit');
-
-        console.log("matchingElements.length", matchingElements.length)
         
-        console.log(this.parseArticleElementToFeed(matchingElements[0]));
+        return matchingElements
+            .map(element => this.parseArticleElementToFeed(element, pageDate))
+            .filter(i => i) as IFeed[];
     }
 
 
-    parseArticleElementToFeed(element: HTMLElement): IFeed {
+    private parseArticleElementToFeed(element: HTMLElement, pageDate: Date): IFeed | null {
 
-        return {
-            source: "",
-            article_url: "",
-            title: ""
+        const articleUrl = element.querySelector(".ue-c-cover-content__link")?.getAttribute("href");
+        if(!articleUrl) {
+            return null; // no article/invalid news element
         }
 
+        const categoryElem = element.querySelector(".ue-c-cover-content__kicker") || element.querySelector(".ue-c-cover-content__aboveheadline");
+
+        const authorNameElem = element.querySelector(".ue-c-cover-content__byline-name");
+        if(authorNameElem) {
+            authorNameElem.querySelector("span")?.remove();
+        }
+
+        return {
+            source: FeedSources.EL_MUNDO,
+            date: pageDate,
+            article_url: articleUrl,
+            title: element.querySelector(".ue-c-cover-content__headline")?.innerText,
+            category: categoryElem?.innerText?.trim(),
+            main_image_url: element.querySelector(".ue-c-cover-content__image")?.getAttribute("data-src"),
+            media_caption: element.querySelector(".ue-c-cover-content__media-source")?.innerText,
+            location: element.querySelector(".ue-c-cover-content__byline-location")?.innerText,
+            author_name: authorNameElem?.innerText?.replace("\n", "")?.trim(),
+            author_role: element.querySelector(".ue-c-cover-content__byline-role")?.innerText,
+            is_opinion: element.querySelector(".ue-c-cover-content--is-opinion") ? true : false,
+            is_premium: element.querySelector(".ue-c-cover-content--is-premium") ? true : false,
+            sponsor: element.querySelector("ue-c-cover-content__sponsor-title")?.innerText
+        }
 
     }
 
