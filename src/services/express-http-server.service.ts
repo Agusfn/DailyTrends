@@ -16,6 +16,7 @@ export class ExpressHttpServerService implements IHttpServer {
         this.app.use("/api/feed", this.feedController.router);
     }
 
+
     start(port: number) {
         return this.app.listen(port, () => {
             console.log("Server listening to port " + port + "...");

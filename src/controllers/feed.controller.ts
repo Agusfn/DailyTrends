@@ -1,20 +1,26 @@
-import { Inject, Service } from "typedi";
-import { IFeedRepository, IFeedRepositoryToken } from "../repositories/feed.repository.interface";
+import { Service } from "typedi";
 import { Request, Response } from "express";
 import { Controller } from "./controller";
+import { FeedFetcherService } from "../services/feed-fetcher-service";
+import { FeedRepository } from "../repositories/feed.repository";
 
 
 @Service()
 export class FeedController extends Controller {
     
-    @Inject(IFeedRepositoryToken) private feedRepository!: IFeedRepository;
+    constructor(
+        private feedRepository: FeedRepository,
+        private feedFetcher: FeedFetcherService
+    ) {
+        super();
+    }
 
     protected registerRoutes() {
-        this.router.get('/:id', this.get.bind(this));
         this.router.post('', this.create.bind(this));
         this.router.put('/:id', this.update.bind(this));
         this.router.delete('/:id', this.delete.bind(this));
-        this.router.get('', this.getFeeds.bind(this));
+        this.router.get('/today', this.getTodayFeeds.bind(this));
+        this.router.get('/:id', this.get.bind(this));
 
     }
 
@@ -34,8 +40,9 @@ export class FeedController extends Controller {
         res.json(await this.feedRepository.delete(req.params.id!));
     }
 
-    async getFeeds(req: Request, res: Response) {
-        res.json(await this.feedRepository.findById("68570b3df6f0a3b422ffa219"));
+    async getTodayFeeds(req: Request, res: Response) {
+        await this.feedFetcher.fetchNewsFromAllSites();
+        res.json(await this.feedRepository.getOfCurrentDate());
     }
 
 }

@@ -14,7 +14,7 @@ export class FeedRepository implements IFeedRepository {
         return Feed.find();
     }
 
-    create(data: IFeed) {
+    create(data: IFeed | IFeed[]) {
         return Feed.create(data);
     }
 
@@ -25,5 +25,28 @@ export class FeedRepository implements IFeedRepository {
     delete(id: string): Promise<IFeed | null> {
         return Feed.findByIdAndDelete(id);
     }
+
+    async createIfNotExists(feed: IFeed) {
+        const exists = await Feed.findOne({
+            article_url: feed.article_url
+        });
+
+        return exists || Feed.create(feed);
+    }
+
+
+    getOfCurrentDate(): Promise<IFeed[]> {
+
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date();
+        end.setHours(23, 59, 59, 999);
+
+        return Feed.find({
+            date: { $gte: start, $lte: end }
+        });
+    }
+
 
 }
