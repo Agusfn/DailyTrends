@@ -1,7 +1,7 @@
 import { Service } from "typedi";
 import { Request, Response } from "express";
 import { Controller } from "./controller";
-import { FeedFetcherService } from "../services/feed-reader/feed-fetcher-service";
+import { FeedFetcherService } from "../services/feed-fetcher-service";
 import { FeedRepository } from "../repositories/feed.repository";
 
 

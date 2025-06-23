@@ -3,7 +3,7 @@ import { Service } from "typedi";
 import { HTMLElement } from "node-html-parser";
 import { IFeed } from "../../models/feed.interface";
 import { FeedSources } from "../../constants";
-import { INewsHtmlParser } from "./news-html-parser.interface";
+import { IFeedHtmlParser } from "./feed-html-parser.interface";
 
 // ue-1-cg__unit:
 // tag/categoria: ue-c-cover-content__kicker o ue-c-cover-content__aboveheadline
@@ -21,7 +21,7 @@ import { INewsHtmlParser } from "./news-html-parser.interface";
 
 
 @Service()
-export class ElMundoHtmlParserService implements INewsHtmlParser {
+export class ElMundoFeedHtmlParserService implements IFeedHtmlParser {
 
 
     public parseFrontPage(pageHtml: string, pageDate: Date): IFeed[] {
