@@ -4,7 +4,7 @@ import Container from 'typedi';
 import { MongooseService } from './services/mongoose.service';
 import { IHttpServer, IHttpServerToken } from './services/http-server.service.interface';
 import { ExpressHttpServerService } from './services/express-http-server.service';
-import { FeedFetcherService } from './services/feed-fetcher-service';
+import { NewsFeedSyncService } from './services/news-feed-sync-service';
 import { newsSitesConfig } from './newsSitesConfig';
 
 async function main() {
@@ -16,7 +16,7 @@ async function main() {
     // Bootstrap
     console.log("Initializing application...");
 
-    const fetcherService = Container.get(FeedFetcherService);
+    const fetcherService = Container.get(NewsFeedSyncService);
     fetcherService.setNewsSitesConfig(newsSitesConfig);
 
     const mongooseService = Container.get(MongooseService);

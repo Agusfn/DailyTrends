@@ -1,19 +1,21 @@
-import axios from "axios";
 import { FeedHtmlParserConstructor, IFeedHtmlParser } from "./feed-html-parser/feed-html-parser.interface";
 import { Service } from "typedi";
 import { FeedRepository } from "../repositories/feed.repository";
-import iconv from 'iconv-lite';
+import { NewsPageFetcherService } from "./news-page-fetcher-service";
 
 
 @Service()
-export class FeedFetcherService {
+export class NewsFeedSyncService {
 
     /**
      * The configured news website urls among with their Html Parser classes.
      */
     private newsSitesConfig: { url: string, HtmlParser: FeedHtmlParserConstructor }[] = [];
 
-    constructor(private feedRepository: FeedRepository) {
+    constructor(
+        private newsSiteFetcher: NewsPageFetcherService,
+        private feedRepository: FeedRepository
+    ) {
 
     }
 
@@ -41,20 +43,10 @@ export class FeedFetcherService {
     private async fetchNewsFrontPage(frontPageUrl: string, HtmlParserClass: new (...args: any[]) => IFeedHtmlParser) {
 
         try {
-            const pageArrayBuffer = (await axios.get(frontPageUrl, {
-                responseType: 'arraybuffer',
-                headers: {
-                    'accept-encoding': '*'
-                }
-            })).data;
-
-            const buffer = Buffer.from(pageArrayBuffer);
-            const charset = this.getCharsetFromHtmlBuffer(buffer);
-
-            const decodedHtml = iconv.decode(buffer, charset || "UTF-8");
+            const pageHtml = await this.newsSiteFetcher.fetchPageHtml(frontPageUrl);
 
             const htmlParserService = new HtmlParserClass();
-            const feeds = htmlParserService.parseFrontPage(decodedHtml, new Date());
+            const feeds = htmlParserService.parseFrontPage(pageHtml, new Date());
 
             for(const feed of feeds) {
                 await this.feedRepository.createIfNotExists(feed);
@@ -64,19 +56,6 @@ export class FeedFetcherService {
             console.log("Could not save feed", error);
         }
 
-    }
-
-    /**
-     * Detect the charset from the page response HTML buffer
-     * @param buffer 
-     * @returns 
-     */
-    private getCharsetFromHtmlBuffer(buffer: Buffer): string | null {
-
-        const asciiChunk = buffer.subarray(0, 2048).toString('ascii');
-
-        const metaTagMatch = asciiChunk.match(/<meta\s+[^>]*charset\s*=\s*["']?([^"'>\s]+)/i);
-        return metaTagMatch ? metaTagMatch[1].toLowerCase() : null;
     }
 
 
