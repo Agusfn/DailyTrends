@@ -8,5 +8,7 @@ export interface IFeedRepository {
     create(data: IFeed | IFeed[]): Promise<IFeed>;
     update(id: string, data: Partial<IFeed>): Promise<IFeed | null>;
     delete(id: string): Promise<IFeed | null>;
+    createIfNotExists(feed: IFeed): Promise<IFeed>;
+    getOfCurrentDate(): Promise<IFeed[]>
 }
 

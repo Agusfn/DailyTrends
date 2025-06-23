@@ -1,16 +1,16 @@
-import { Service } from "typedi";
+import { Inject, Service } from "typedi";
 import { Request, Response } from "express";
 import { Controller } from "./controller";
-import { FeedFetcherService } from "../services/feed-fetcher-service";
-import { FeedRepository } from "../repositories/feed.repository";
+import { NewsFeedSyncService } from "../services/news-feed-sync-service";
+import { IFeedRepository, IFeedRepositoryToken } from "../repositories/feed.repository.interface";
 
 
 @Service()
 export class FeedController extends Controller {
     
     constructor(
-        private feedRepository: FeedRepository,
-        private feedFetcher: FeedFetcherService
+        @Inject(IFeedRepositoryToken) private feedRepository: IFeedRepository,
+        private feedFetcher: NewsFeedSyncService
     ) {
         super();
     }

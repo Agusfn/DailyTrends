@@ -4,19 +4,24 @@ import Container from 'typedi';
 import { MongooseService } from './services/mongoose.service';
 import { IHttpServer, IHttpServerToken } from './services/http-server.service.interface';
 import { ExpressHttpServerService } from './services/express-http-server.service';
-import { FeedFetcherService } from './services/feed-fetcher-service';
+import { NewsFeedSyncService } from './services/news-feed-sync-service';
 import { newsSitesConfig } from './newsSitesConfig';
+import { IFeedRepositoryToken } from './repositories/feed.repository.interface';
+import { FeedRepository } from './repositories/feed.repository';
+import { INewsPageFetcherToken } from './services/news-page-fetcher.interface';
+import { NewsPageFetcherService } from './services/news-page-fetcher-service';
 
 async function main() {
 
     // Bind services
+    Container.set(IFeedRepositoryToken, Container.get(FeedRepository));
+    Container.set(INewsPageFetcherToken, Container.get(NewsPageFetcherService));
     Container.set(IHttpServerToken, Container.get(ExpressHttpServerService));
-
 
     // Bootstrap
     console.log("Initializing application...");
 
-    const fetcherService = Container.get(FeedFetcherService);
+    const fetcherService = Container.get(NewsFeedSyncService);
     fetcherService.setNewsSitesConfig(newsSitesConfig);
 
     const mongooseService = Container.get(MongooseService);
