@@ -11,3 +11,7 @@ After downloading dependencies:
 ## Compile + start:
 
 >npm run start
+
+## Run test
+
+>npm run test
