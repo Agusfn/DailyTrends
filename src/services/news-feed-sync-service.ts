@@ -1,7 +1,7 @@
 import { FeedHtmlParserConstructor, IFeedHtmlParser } from "./feed-html-parser/feed-html-parser.interface";
-import { Service } from "typedi";
-import { FeedRepository } from "../repositories/feed.repository";
-import { NewsPageFetcherService } from "./news-page-fetcher-service";
+import { Inject, Service } from "typedi";
+import { INewsPageFetcher, INewsPageFetcherToken } from "./news-page-fetcher.interface";
+import { IFeedRepository, IFeedRepositoryToken } from "../repositories/feed.repository.interface";
 
 
 @Service()
@@ -13,8 +13,8 @@ export class NewsFeedSyncService {
     private newsSitesConfig: { url: string, HtmlParser: FeedHtmlParserConstructor }[] = [];
 
     constructor(
-        private newsSiteFetcher: NewsPageFetcherService,
-        private feedRepository: FeedRepository
+        @Inject(INewsPageFetcherToken) private newsSiteFetcher: INewsPageFetcher,
+        @Inject(IFeedRepositoryToken) private feedRepository: IFeedRepository
     ) {
 
     }
@@ -30,8 +30,8 @@ export class NewsFeedSyncService {
     /**
      * Fetch the front page of all configured news sites and store new articles (Feed) in database.
      */
-    public async fetchNewsFromAllSites(): Promise<void> {
-        const fetchAllWebsites = this.newsSitesConfig.map(config => this.fetchNewsFrontPage(config.url, config.HtmlParser));
+    public async fetchNewsFromAllSites(date?: Date): Promise<void> {
+        const fetchAllWebsites = this.newsSitesConfig.map(config => this.fetchNewsFrontPage(config.url, config.HtmlParser, date));
         await Promise.all(fetchAllWebsites);
     }
 
@@ -40,13 +40,13 @@ export class NewsFeedSyncService {
      * @param frontPageUrl The uri of the front page of the news articles website.
      * @param HtmlParserClass The constructor or class of the HtmlParser for the given website.
      */
-    private async fetchNewsFrontPage(frontPageUrl: string, HtmlParserClass: new (...args: any[]) => IFeedHtmlParser) {
+    private async fetchNewsFrontPage(frontPageUrl: string, HtmlParserClass: new (...args: any[]) => IFeedHtmlParser, date = new Date()) {
 
         try {
             const pageHtml = await this.newsSiteFetcher.fetchPageHtml(frontPageUrl);
 
             const htmlParserService = new HtmlParserClass();
-            const feeds = htmlParserService.parseFrontPage(pageHtml, new Date());
+            const feeds = htmlParserService.parseFrontPage(pageHtml, date);
 
             for(const feed of feeds) {
                 await this.feedRepository.createIfNotExists(feed);

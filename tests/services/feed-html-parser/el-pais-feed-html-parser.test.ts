@@ -8,7 +8,7 @@ describe("ElMundoFeedHtmlParserService", () => {
     let feeds: IFeed[];
 
     beforeAll(() => {
-        const pageHtml = readFileSync(join(__dirname, './el-pais-23-06-2025.html'), 'utf-8');
+        const pageHtml = readFileSync(join(__dirname, '../../el-pais-23-06-2025.html'), 'utf-8');
         const parser = new ElPaisFeedHtmlParserService();
         feeds = parser.parseFrontPage(pageHtml, new Date("2025-06-23T18:30:00.000+02:00"));
     });
